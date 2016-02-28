@@ -1,0 +1,66 @@
+---
+title: "Prediction_Assignment_Writeup"
+author: "Gaurav Sharma"
+date: "February 29, 2016"
+output: html_document
+---
+
+# Load all the required libraries
+
+```{r , echo=FALSE}
+library(caret)
+library(rpart)
+library(e1071)
+```
+
+
+# Load the training and dataset
+```{r, echo=FALSE}
+dataset.training <- read.csv("./pml-training.csv", na.strings=c("NA","#DIV/0!",""))
+dataset.testing <- read.csv("./pml-testing.csv", na.strings=c("NA","#DIV/0!",""))
+
+```
+
+
+##Only use varialbes used in testing dataset.
+```{r, echo=FALSE}
+features <- names(dataset.testing[,colSums(is.na(dataset.testing)) == 0])[8:59]
+dataset.training <- dataset.training[,c(features,"classe")]
+dataset.testing <- dataset.testing[,c(features,"problem_id")]
+dim(dataset.training)
+dim(dataset.testing)
+
+```
+
+
+#Create sample training and testing datasets
+```{r}
+set.seed(12345)
+index <- createDataPartition(dataset.training$classe, p=0.7, list=FALSE)
+training <- dataset.training[index,]
+testing <- dataset.training[-index,]
+
+```
+
+
+
+# Create model for prediction. Used all the variables to predict,Method used in DT
+```{r}
+model.dt <- rpart(classe ~ ., data = training, method="class")
+```
+
+
+
+# Predict the model on sample test
+```{r}
+predict.dt <- predict(model.dt, testing, type = "class")
+confusionMatrix(predict.dt, testing$classe)
+```
+
+
+# Predict the values on Testing Dataset
+```{r}
+prediction.test <- predict(model.dt, dataset.testing, type = "class")
+prediction.test
+```
+
